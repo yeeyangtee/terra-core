@@ -45,14 +45,32 @@ const (
 	DefaultRootName                 = types.DefaultRootName
 	DefaultMinNameLength            = types.DefaultMinNameLength
 	QueryParameters                 = types.QueryParameters
-	QueryAuctions                    = types.QueryAuctions
-	QueryBids                        = types.QueryBids
+	QueryAuctions                   = types.QueryAuctions
+	QueryBids                       = types.QueryBids
 	QueryRegistry                   = types.QueryRegistry
 	QueryResolve                    = types.QueryResolve
 	QueryReverse                    = types.QueryReverse
 	AuctionStatusNil                = types.AuctionStatusNil
 	AuctionStatusBid                = types.AuctionStatusBid
 	AuctionStatusReveal             = types.AuctionStatusReveal
+
+	EventTypeOpen       = "open"
+	EventTypeBid        = "bid"
+	EventTypeReveal     = "reveal"
+	EventTypeRegister   = "register"
+	EventTypeUnregister = "unregister"
+	EventTypeRenew      = "renew"
+
+	AttributeKeyName      = "name"
+	AttributeKeyDeposit   = "deposit"
+	AttributeKeyBidder    = "bidder"
+	AttributeKeyAmount    = "amount"
+	AttributeKeyAddress   = "address"
+	AttributeKeyOrganizer = "organizer"
+	AttributeKeyEndTime   = "end_time"
+	AttributeKeyOwner     = "owner"
+	AttributeKeyNewOwner  = "new_owner"
+	AttributeKeyFee       = "fee"
 )
 
 var (
@@ -165,8 +183,8 @@ type (
 	MsgUnregisterSubName = types.MsgUnregisterSubName
 	Name                 = types.Name
 	Params               = types.Params
-	QueryAuctionsParams   = types.QueryAuctionsParams
-	QueryBidsParams       = types.QueryBidsParams
+	QueryAuctionsParams  = types.QueryAuctionsParams
+	QueryBidsParams      = types.QueryBidsParams
 	QueryRegistryParams  = types.QueryRegistryParams
 	QueryResolveParams   = types.QueryResolveParams
 	QueryReverseParams   = types.QueryReverseParams

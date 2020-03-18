@@ -1,4 +1,3 @@
-// noalias
 package types
 
 // Market module event types

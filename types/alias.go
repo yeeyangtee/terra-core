@@ -43,3 +43,5 @@ var (
 	GetEpoch          = util.GetEpoch
 	IsPeriodLastBlock = util.IsPeriodLastBlock
 )
+
+type HookHandler = util.HookHandler

@@ -113,7 +113,7 @@ func handleMsgBidAuction(ctx sdk.Context, keeper Keeper, msg MsgBidAuction) sdk.
 	if err != nil {
 		return err.Result()
 	}
-	
+
 	// store bid
 	keeper.SetBid(ctx, nameHash, NewBid(msg.Hash, msg.Deposit, msg.Bidder))
 
@@ -381,6 +381,7 @@ func handleMsgUnregisterSubName(ctx sdk.Context, keeper Keeper, msg MsgUnregiste
 			types.EventTypeUnregister,
 			sdk.NewAttribute(types.AttributeKeyName, msg.Name.String()),
 			sdk.NewAttribute(types.AttributeKeyOwner, msg.Owner.String()),
+			sdk.NewAttribute(types.AttributeKeyAddress, resolvedAddr.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

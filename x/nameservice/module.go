@@ -2,6 +2,7 @@ package nameservice
 
 import (
 	"encoding/json"
+	core "github.com/terra-project/core/types"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -73,13 +74,15 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper Keeper
+	hooks  []core.HookHandler
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper) AppModule {
+func NewAppModule(keeper Keeper, hooks ...core.HookHandler) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
+		hooks:          hooks,
 	}
 }
 
@@ -94,7 +97,17 @@ func (AppModule) Route() string { return RouterKey }
 
 // NewHandler returns an sdk.Handler for the nameservice module.
 func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
+	handler := NewHandler(am.keeper)
+	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+		res := handler(ctx, msg)
+		if res.IsOK() {
+			for _, hook := range am.hooks {
+				hook(ctx, msg, res)
+			}
+		}
+
+		return res
+	}
 }
 
 // QuerierRoute returns the nameservice module's querier route name.

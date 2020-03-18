@@ -2,6 +2,7 @@ package bank
 
 import (
 	"encoding/json"
+	core "github.com/terra-project/core/types"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -63,19 +64,19 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return CosmosAppModuleBasic{}.GetQueryCmd(cdc)
 }
 
-//___________________________
-
 // AppModule implements an application module for the bank module.
 type AppModule struct {
 	AppModuleBasic
 	cosmosAppModule CosmosAppModule
+	hooks           []core.HookHandler
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper, hooks ...core.HookHandler) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
 		cosmosAppModule: NewCosmosAppModule(keeper, accountKeeper),
+		hooks:           hooks,
 	}
 }
 
@@ -96,7 +97,17 @@ func (am AppModule) Route() string {
 
 // NewHandler returns an sdk.Handler for the bank module.
 func (am AppModule) NewHandler() sdk.Handler {
-	return am.cosmosAppModule.NewHandler()
+	handler := am.cosmosAppModule.NewHandler()
+	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+		res := handler(ctx, msg)
+		if res.IsOK() {
+			for _, hook := range am.hooks {
+				hook(ctx, msg, res)
+			}
+		}
+
+		return res
+	}
 }
 
 // QuerierRoute returns the bank module's querier route name.

@@ -53,6 +53,13 @@ var (
 	DefaultPoolRecoveryPeriod         = types.DefaultPoolRecoveryPeriod
 	DefaultMinSpread                  = types.DefaultMinSpread
 	DefaultTobinTax                   = types.DefaultTobinTax
+
+	EventSwap = "swap"
+
+	AttributeKeyOffer    = "offer"
+	AttributeKeyTrader   = "trader"
+	AttributeKeySwapCoin = "swap_coin"
+	AttributeKeySwapFee  = "swap_fee"
 )
 
 type (

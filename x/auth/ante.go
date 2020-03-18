@@ -420,7 +420,7 @@ func computeTax(ctx sdk.Context, tk TreasuryKeeper, principal sdk.Coins) (taxes 
 			taxDue = taxCap
 		}
 
-		if taxDue.Equal(sdk.ZeroInt()) {
+		if taxDue.IsZero() {
 			continue
 		}
 

@@ -35,6 +35,7 @@ import (
 	"github.com/terra-project/core/x/supply"
 	"github.com/terra-project/core/x/treasury"
 	"github.com/terra-project/core/x/nameservice"
+	"github.com/terra-project/core/x/nameservice/tracking"
 )
 
 const appName = "TerraApp"
@@ -202,17 +203,17 @@ func NewTerraApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 		genaccounts.NewAppModule(app.accountKeeper),
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		bank.NewAppModule(app.bankKeeper, app.accountKeeper, tracking.BankHook(app.nameserviceKeeper)),
 		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		gov.NewAppModule(app.govKeeper, app.supplyKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
-		market.NewAppModule(app.marketKeeper),
+		market.NewAppModule(app.marketKeeper, tracking.MarketHook(app.nameserviceKeeper)),
 		oracle.NewAppModule(app.oracleKeeper),
 		treasury.NewAppModule(app.treasuryKeeper),
-		nameservice.NewAppModule(app.nameserviceKeeper),
+		nameservice.NewAppModule(app.nameserviceKeeper, tracking.NameserviceHook(app.nameserviceKeeper, app.accountKeeper)),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that

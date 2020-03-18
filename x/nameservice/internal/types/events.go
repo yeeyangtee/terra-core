@@ -1,4 +1,3 @@
-//noalias
 package types
 
 // Nameservice module event types
