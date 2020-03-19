@@ -23,9 +23,6 @@ func NewRegistry(name Name, owner sdk.AccAddress, endTime time.Time) Registry {
 		Name:                name,
 		Owner:               owner,
 		EndTime:             endTime,
-		LockedValue:         sdk.NewCoins(),
-		TaxContribution:     sdk.NewCoins(),
-		SwapFeeContribution: sdk.NewDecCoins(sdk.NewCoins()),
 	}
 }
 

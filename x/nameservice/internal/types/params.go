@@ -72,16 +72,16 @@ func DefaultParams() Params {
 
 // Validate validates a set of params
 func (params Params) Validate() error {
-	if params.BidPeriod.Minutes() < 10 {
-		return fmt.Errorf("nameservice parameter BidPeriod must be bigger than 10 minutes")
+	if params.BidPeriod.Minutes() < 1 {
+		return fmt.Errorf("nameservice parameter BidPeriod must be bigger than 1 minutes")
 	}
 
-	if params.RevealPeriod.Minutes() < 10 {
-		return fmt.Errorf("nameservice parameter RevealPeriod must be bigger than 10 minutes")
+	if params.RevealPeriod.Minutes() < 1 {
+		return fmt.Errorf("nameservice parameter RevealPeriod must be bigger than 1 minutes")
 	}
 
-	if params.RenewalInterval.Minutes() < 10 {
-		return fmt.Errorf("nameservice parameter RenewalInterval must be bigger than 10 minutes")
+	if params.RenewalInterval.Minutes() < 1 {
+		return fmt.Errorf("nameservice parameter RenewalInterval must be bigger than 1 minutes")
 	}
 
 	if !params.MinDeposit.IsValid() {

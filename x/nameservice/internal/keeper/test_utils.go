@@ -84,7 +84,7 @@ func CreateTestInput(t *testing.T) TestInput {
 	cdc := newTestCodec()
 	db := dbm.NewMemDB()
 	ms := store.NewCommitMultiStore(db)
-	ctx := sdk.NewContext(ms, abci.Header{Time: time.Now().UTC()}, false, log.NewNopLogger())
+	ctx := sdk.NewContext(ms, abci.Header{Time: time.Now().UTC()}, false, log.NewNopLogger()).WithEventManager(sdk.NewEventManager())
 
 	ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(tKeyParams, sdk.StoreTypeTransient, db)

@@ -3,14 +3,13 @@ package tracking
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/terra-project/core/x/treasury"
-
 	core "github.com/terra-project/core/types"
 	ns "github.com/terra-project/core/x/nameservice"
+	"github.com/terra-project/core/x/nameservice/internal/types"
 )
 
 // BankHook - track sending amount
-func BankHook(k ns.Keeper, tk treasury.Keeper) core.HookHandler {
+func BankHook(k ns.Keeper, tk types.TreasuryKeeper) core.HookHandler {
 	return func(ctx sdk.Context, msg sdk.Msg, _ sdk.Result) {
 		if sendMsg, ok := msg.(bank.MsgSend); ok {
 			updateLockedValueWithTaxContribution(ctx, k, tk, sendMsg.FromAddress, sendMsg.Amount, true)
@@ -28,7 +27,7 @@ func BankHook(k ns.Keeper, tk treasury.Keeper) core.HookHandler {
 	}
 }
 
-func updateLockedValueWithTaxContribution(ctx sdk.Context, k ns.Keeper, tk treasury.Keeper, accAddr sdk.AccAddress, amount sdk.Coins, isSender bool) {
+func updateLockedValueWithTaxContribution(ctx sdk.Context, k ns.Keeper, tk types.TreasuryKeeper, accAddr sdk.AccAddress, amount sdk.Coins, isSender bool) {
 	if amount.IsZero() {
 		return
 	}
@@ -51,7 +50,7 @@ func updateLockedValueWithTaxContribution(ctx sdk.Context, k ns.Keeper, tk treas
 }
 
 // computes the stability tax according to tax-rate and tax-cap
-func computeTax(ctx sdk.Context, tk treasury.Keeper, principal sdk.Coins) (taxes sdk.Coins) {
+func computeTax(ctx sdk.Context, tk types.TreasuryKeeper, principal sdk.Coins) (taxes sdk.Coins) {
 	taxRate := tk.GetTaxRate(ctx)
 	if taxRate.Equal(sdk.ZeroDec()) {
 		return

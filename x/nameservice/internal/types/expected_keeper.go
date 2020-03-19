@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
@@ -20,4 +21,15 @@ type SupplyKeeper interface {
 
 	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) sdk.Error
 	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) sdk.Error
+}
+
+// TreasuryKeeper defines expected treasury keeper
+type TreasuryKeeper interface {
+	GetTaxRate(ctx sdk.Context) (taxRate sdk.Dec)
+	GetTaxCap(ctx sdk.Context, denom string) (taxCap sdk.Int)
+}
+
+// AccountKeeper defines expected account keeper
+type AccountKeeper interface {
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
 }
