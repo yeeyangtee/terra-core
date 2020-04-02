@@ -28,14 +28,14 @@ import (
 	"github.com/terra-project/core/x/genutil"
 	"github.com/terra-project/core/x/gov"
 	"github.com/terra-project/core/x/market"
+	"github.com/terra-project/core/x/nameservice"
+	"github.com/terra-project/core/x/nameservice/tracking"
 	"github.com/terra-project/core/x/oracle"
 	"github.com/terra-project/core/x/params"
 	"github.com/terra-project/core/x/slashing"
 	"github.com/terra-project/core/x/staking"
 	"github.com/terra-project/core/x/supply"
 	"github.com/terra-project/core/x/treasury"
-	"github.com/terra-project/core/x/nameservice"
-	"github.com/terra-project/core/x/nameservice/tracking"
 )
 
 const appName = "TerraApp"

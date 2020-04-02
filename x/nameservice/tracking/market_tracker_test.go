@@ -93,7 +93,6 @@ func TestMarketHook(t *testing.T) {
 	require.True(t, registry.SwapFeeContribution.IsEqual(sdk.DecCoins{expectedSwapFee}))
 	require.True(t, registry.LockedValue.IsEqual(keeper.InitCoins.Sub(sdk.Coins{offerCoin}).Add(sdk.Coins{retCoin})))
 
-
 	// state must be same with invalid attributes 2
 	input.Ctx = input.Ctx.WithEventManager(sdk.NewEventManager())
 	input.Ctx.EventManager().EmitEvents(sdk.Events{

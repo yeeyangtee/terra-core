@@ -14,7 +14,7 @@ func MarketHook(k ns.Keeper) core.HookHandler {
 		ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 
 		if swapMsg, ok := msg.(market.MsgSwap); ok {
-			if swapMsg.OfferCoin.IsZero(){
+			if swapMsg.OfferCoin.IsZero() {
 				return
 			}
 

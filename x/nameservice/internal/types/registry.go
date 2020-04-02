@@ -20,9 +20,9 @@ type Registry struct {
 // NewRegistry returns Registry instance
 func NewRegistry(name Name, owner sdk.AccAddress, endTime time.Time) Registry {
 	return Registry{
-		Name:                name,
-		Owner:               owner,
-		EndTime:             endTime,
+		Name:    name,
+		Owner:   owner,
+		EndTime: endTime,
 	}
 }
 

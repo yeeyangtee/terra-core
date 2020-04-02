@@ -11,18 +11,24 @@ import (
 )
 
 const (
-	DefaultCodespace     = types.DefaultCodespace
-	CodeInsufficientSwap = types.CodeInvalidOfferCoin
-	CodeNoEffectivePrice = types.CodeNoEffectivePrice
-	CodeRecursiveSwap    = types.CodeRecursiveSwap
-	ModuleName           = types.ModuleName
-	StoreKey             = types.StoreKey
-	RouterKey            = types.RouterKey
-	QuerierRoute         = types.QuerierRoute
-	DefaultParamspace    = types.DefaultParamspace
-	QuerySwap            = types.QuerySwap
-	QueryTerraPoolDelta  = types.QueryTerraPoolDelta
-	QueryParameters      = types.QueryParameters
+	DefaultCodespace       = types.DefaultCodespace
+	CodeInvalidOfferCoin   = types.CodeInvalidOfferCoin
+	CodeNoEffectivePrice   = types.CodeNoEffectivePrice
+	CodeRecursiveSwap      = types.CodeRecursiveSwap
+	EventSwap              = types.EventSwap
+	AttributeKeyOffer      = types.AttributeKeyOffer
+	AttributeKeyTrader     = types.AttributeKeyTrader
+	AttributeKeySwapCoin   = types.AttributeKeySwapCoin
+	AttributeKeySwapFee    = types.AttributeKeySwapFee
+	AttributeValueCategory = types.AttributeValueCategory
+	ModuleName             = types.ModuleName
+	StoreKey               = types.StoreKey
+	RouterKey              = types.RouterKey
+	QuerierRoute           = types.QuerierRoute
+	DefaultParamspace      = types.DefaultParamspace
+	QuerySwap              = types.QuerySwap
+	QueryTerraPoolDelta    = types.QueryTerraPoolDelta
+	QueryParameters        = types.QueryParameters
 )
 
 var (
@@ -42,24 +48,14 @@ var (
 	NewQuerier          = keeper.NewQuerier
 
 	// variable aliases
-	ModuleCdc                         = types.ModuleCdc
-	TerraPoolDeltaKey                 = types.TerraPoolDeltaKey
-	ParamStoreKeyBasePool             = types.ParamStoreKeyBasePool
-	ParamStoreKeyPoolRecoveryPeriod   = types.ParamStoreKeyPoolRecoveryPeriod
-	ParamStoreKeyMinSpread            = types.ParamStoreKeyMinSpread
-	ParmaStoreKeyTobinTax             = types.ParmaStoreKeyTobinTax
-	ParmaStoreKeyIlliquidTobinTaxList = types.ParmaStoreKeyIlliquidTobinTaxList
-	DefaultBasePool                   = types.DefaultBasePool
-	DefaultPoolRecoveryPeriod         = types.DefaultPoolRecoveryPeriod
-	DefaultMinSpread                  = types.DefaultMinSpread
-	DefaultTobinTax                   = types.DefaultTobinTax
-
-	EventSwap = "swap"
-
-	AttributeKeyOffer    = "offer"
-	AttributeKeyTrader   = "trader"
-	AttributeKeySwapCoin = "swap_coin"
-	AttributeKeySwapFee  = "swap_fee"
+	ModuleCdc                       = types.ModuleCdc
+	TerraPoolDeltaKey               = types.TerraPoolDeltaKey
+	ParamStoreKeyBasePool           = types.ParamStoreKeyBasePool
+	ParamStoreKeyPoolRecoveryPeriod = types.ParamStoreKeyPoolRecoveryPeriod
+	ParamStoreKeyMinStabilitySpread = types.ParamStoreKeyMinStabilitySpread
+	DefaultBasePool                 = types.DefaultBasePool
+	DefaultPoolRecoveryPeriod       = types.DefaultPoolRecoveryPeriod
+	DefaultMinStabilitySpread       = types.DefaultMinStabilitySpread
 )
 
 type (
@@ -69,5 +65,7 @@ type (
 	MsgSwap         = types.MsgSwap
 	Params          = types.Params
 	QuerySwapParams = types.QuerySwapParams
+	TobinTax        = types.TobinTax
+	TobinTaxList    = types.TobinTaxList
 	Keeper          = keeper.Keeper
 )

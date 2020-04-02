@@ -12,7 +12,7 @@ import (
 	"github.com/terra-project/core/x/nameservice/internal/keeper"
 )
 
-type mockTreasuryKeeper struct {}
+type mockTreasuryKeeper struct{}
 
 var constTaxRate = sdk.NewDecWithPrec(675, 5)
 var constTaxCap = sdk.OneInt().MulRaw(core.MicroUnit)
@@ -72,7 +72,7 @@ func TestComputeTax(t *testing.T) {
 		sdk.NewInt64Coin(core.MicroSDRDenom, 1),
 	}
 
-	expectedTaxes := sdk.Coins {
+	expectedTaxes := sdk.Coins{
 		sdk.NewCoin(core.MicroKRWDenom, constTaxRate.MulInt64(1000).TruncateInt()),
 		sdk.NewCoin(core.MicroUSDDenom, constTaxCap),
 	}
