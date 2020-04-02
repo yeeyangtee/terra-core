@@ -10,8 +10,10 @@ import (
 // MarketHook - track sending amount
 func MarketHook(k ns.Keeper) core.HookHandler {
 	return func(ctx sdk.Context, msg sdk.Msg, res sdk.Result) {
-		if swapMsg, ok := msg.(market.MsgSwap); ok {
+		// prevent gas consumed due to tracking
+		ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 
+		if swapMsg, ok := msg.(market.MsgSwap); ok {
 			if swapMsg.OfferCoin.IsZero(){
 				return
 			}

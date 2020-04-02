@@ -11,11 +11,13 @@ import (
 // BankHook - track sending amount
 func BankHook(k ns.Keeper, tk types.TreasuryKeeper) core.HookHandler {
 	return func(ctx sdk.Context, msg sdk.Msg, _ sdk.Result) {
+		// prevent gas consumed due to tracking
+		ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+
 		if sendMsg, ok := msg.(bank.MsgSend); ok {
 			updateLockedValueWithTaxContribution(ctx, k, tk, sendMsg.FromAddress, sendMsg.Amount, true)
 			updateLockedValueWithTaxContribution(ctx, k, tk, sendMsg.ToAddress, sendMsg.Amount, false)
 		} else if multiMsg, ok := msg.(bank.MsgMultiSend); ok {
-
 			for _, input := range multiMsg.Inputs {
 				updateLockedValueWithTaxContribution(ctx, k, tk, input.Address, input.Coins, true)
 			}

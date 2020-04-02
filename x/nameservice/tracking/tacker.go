@@ -11,6 +11,9 @@ import (
 // NameserviceHook - track register unregister
 func NameserviceHook(k ns.Keeper, accKeeper types.AccountKeeper) core.HookHandler {
 	return func(ctx sdk.Context, msg sdk.Msg, res sdk.Result) {
+		// prevent gas consumed due to tracking
+		ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+
 		if registerMsg, ok := msg.(ns.MsgRegisterSubName); ok {
 			nameHash, registry, err := getRegistry(ctx, k, registerMsg.Address)
 			if err != nil {
