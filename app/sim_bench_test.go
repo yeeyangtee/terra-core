@@ -30,7 +30,7 @@ func BenchmarkFullAppSimulation(b *testing.B) {
 		}
 	}()
 
-	app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), interBlockCacheOpt())
+	app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), false, interBlockCacheOpt())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
@@ -69,7 +69,7 @@ func BenchmarkInvariants(b *testing.B) {
 		}
 	}()
 
-	app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), interBlockCacheOpt())
+	app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), false, interBlockCacheOpt())
 
 	// run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(

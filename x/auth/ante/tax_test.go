@@ -33,7 +33,7 @@ import (
 func createTestApp() (*app.TerraApp, sdk.Context) {
 	db := dbm.NewMemDB()
 
-	tapp := app.NewTerraApp(log.NewNopLogger(), db, nil, true, 0, map[int64]bool{}, wasmconfig.DefaultConfig())
+	tapp := app.NewTerraApp(log.NewNopLogger(), db, nil, true, 0, map[int64]bool{}, wasmconfig.DefaultConfig(), false)
 	ctx := tapp.BaseApp.NewContext(true, abci.Header{})
 	tapp.GetTreasuryKeeper().SetParams(ctx, treasury.DefaultParams())
 

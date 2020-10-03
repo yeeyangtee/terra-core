@@ -93,7 +93,7 @@ func replayTxs(rootDir string) error {
 	fmt.Fprintln(os.Stderr, "Creating application")
 	tapp := app.NewTerraApp(
 		ctx.Logger, appDB, traceStoreWriter, true, uint(1), map[int64]bool{},
-		wasmconfig.DefaultConfig(), baseapp.SetPruning(storetypes.PruneEverything), // nothing
+		wasmconfig.DefaultConfig(), false, baseapp.SetPruning(storetypes.PruneEverything), // nothing
 	)
 
 	// Genesis

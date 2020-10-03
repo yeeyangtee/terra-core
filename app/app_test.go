@@ -25,12 +25,12 @@ func TestTerraExport(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	db := dbm.NewMemDB()
-	tapp := NewTerraApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0, map[int64]bool{}, wasmconfig.DefaultConfig())
+	tapp := NewTerraApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0, map[int64]bool{}, wasmconfig.DefaultConfig(), false)
 	err = setGenesis(tapp)
 	require.NoError(t, err)
 
 	// Making a new app object with the db, so that initchain hasn't been called
-	newTapp := NewTerraApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0, map[int64]bool{}, wasmconfig.DefaultConfig())
+	newTapp := NewTerraApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0, map[int64]bool{}, wasmconfig.DefaultConfig(), false)
 	_, _, err = newTapp.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 
@@ -64,7 +64,7 @@ func TestBlackListedAddrs(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	db := dbm.NewMemDB()
-	app := NewTerraApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0, map[int64]bool{}, wasmconfig.DefaultConfig())
+	app := NewTerraApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0, map[int64]bool{}, wasmconfig.DefaultConfig(), false)
 
 	for acc := range maccPerms {
 		require.Equal(t, !allowedReceivingModAcc[acc], app.bankKeeper.BlacklistedAddr(app.supplyKeeper.GetModuleAddress(acc)))

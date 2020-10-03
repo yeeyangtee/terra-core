@@ -131,6 +131,10 @@ type TerraApp struct {
 
 	invCheckPeriod uint
 
+	// trakcing flags
+	tracking     bool
+	trackingDone bool
+
 	// keys to access the substores
 	keys  map[string]*sdk.KVStoreKey
 	tkeys map[string]*sdk.TransientStoreKey
@@ -167,7 +171,7 @@ type TerraApp struct {
 // NewTerraApp returns a reference to an initialized TerraApp.
 func NewTerraApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, skipUpgradeHeights map[int64]bool, wasmConfig *wasmconfig.Config,
-	baseAppOptions ...func(*bam.BaseApp)) *TerraApp {
+	tracking bool, baseAppOptions ...func(*bam.BaseApp)) *TerraApp {
 
 	cdc := MakeCodec()
 
@@ -189,6 +193,7 @@ func NewTerraApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 		BaseApp:        bApp,
 		cdc:            cdc,
 		invCheckPeriod: invCheckPeriod,
+		tracking:       tracking,
 		keys:           keys,
 		tkeys:          tkeys,
 		subspaces:      make(map[string]params.Subspace),
@@ -364,7 +369,21 @@ func (app *TerraApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) a
 
 // EndBlocker defines application updates at every end block
 func (app *TerraApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+	res := app.mm.EndBlock(ctx, req)
+
+	// vesting & rank tracking
+	if app.tracking {
+		if blockTime := ctx.BlockTime(); blockTime.Hour() == 0 && blockTime.Minute() == 0 {
+			if !app.trackingDone {
+				app.trackingAll(ctx)
+				app.trackingDone = true
+			}
+		} else {
+			app.trackingDone = false
+		}
+	}
+
+	return res
 }
 
 // InitChainer defines application update at chain initialization

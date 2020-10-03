@@ -34,8 +34,10 @@ import (
 
 // terrad custom flags
 const flagInvCheckPeriod = "inv-check-period"
+const flagTracking = "tracking"
 
 var invCheckPeriod uint
+var tracking bool
 
 func main() {
 	cdc := app.MakeCodec()
@@ -73,6 +75,16 @@ func main() {
 	executor := cli.PrepareBaseCmd(rootCmd, "TE", app.DefaultNodeHome)
 	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 		0, "Assert registered invariants every N blocks")
+
+	cmds := rootCmd.Commands()
+	for _, cmd := range cmds {
+		if cmd.Name() == "start" {
+			cmd.PersistentFlags().BoolVar(&tracking, flagTracking,
+				false, "Specify flag if you want to left tracking data to /tmp/tracking* /tmp/vesting*")
+			break
+		}
+	}
+
 	err := executor.Execute()
 	if err != nil {
 		panic(err)
@@ -102,6 +114,7 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 			ContractQueryGasLimit: viper.GetUint64(wasmconfig.FlagContractQueryGasLimit),
 			CacheSize:             viper.GetUint64(wasmconfig.FlagCacheSize),
 		}},
+		tracking,
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(viper.GetUint64(server.FlagHaltHeight)),
@@ -115,14 +128,14 @@ func exportAppStateAndTMValidators(
 ) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 
 	if height != -1 {
-		tApp := app.NewTerraApp(logger, db, traceStore, false, uint(1), map[int64]bool{}, wasmconfig.DefaultConfig())
+		tApp := app.NewTerraApp(logger, db, traceStore, false, uint(1), map[int64]bool{}, wasmconfig.DefaultConfig(), false)
 		err := tApp.LoadHeight(height)
 		if err != nil {
 			return nil, nil, err
 		}
 		return tApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
-	tApp := app.NewTerraApp(logger, db, traceStore, true, uint(1), map[int64]bool{}, wasmconfig.DefaultConfig())
+	tApp := app.NewTerraApp(logger, db, traceStore, true, uint(1), map[int64]bool{}, wasmconfig.DefaultConfig(), false)
 	return tApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }
 

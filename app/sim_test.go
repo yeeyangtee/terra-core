@@ -73,7 +73,7 @@ func TestFullAppSimulation(t *testing.T) {
 	}()
 
 	viper.Set(flags.FlagHome, dir)
-	app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), fauxMerkleModeOpt)
+	app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), false, fauxMerkleModeOpt)
 	require.Equal(t, "TerraApp", app.Name())
 
 	// run randomized simulation
@@ -106,7 +106,7 @@ func TestAppImportExport(t *testing.T) {
 	}()
 
 	viper.Set(flags.FlagHome, dir)
-	app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), fauxMerkleModeOpt)
+	app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), false, fauxMerkleModeOpt)
 	require.Equal(t, "TerraApp", app.Name())
 
 	// Run randomized simulation
@@ -141,7 +141,7 @@ func TestAppImportExport(t *testing.T) {
 	}()
 
 	viper.Set(flags.FlagHome, dir)
-	newApp := NewTerraApp(log.NewNopLogger(), newDB, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), fauxMerkleModeOpt)
+	newApp := NewTerraApp(log.NewNopLogger(), newDB, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), false, fauxMerkleModeOpt)
 	require.Equal(t, "TerraApp", newApp.Name())
 
 	var genesisState simapp.GenesisState
@@ -198,7 +198,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	}()
 
 	viper.Set(flags.FlagHome, dir)
-	app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), fauxMerkleModeOpt)
+	app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), false, fauxMerkleModeOpt)
 	require.Equal(t, "TerraApp", app.Name())
 
 	// Run randomized simulation
@@ -238,7 +238,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	}()
 
 	viper.Set(flags.FlagHome, dir)
-	newApp := NewTerraApp(log.NewNopLogger(), newDB, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), fauxMerkleModeOpt)
+	newApp := NewTerraApp(log.NewNopLogger(), newDB, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), false, fauxMerkleModeOpt)
 	require.Equal(t, "TerraApp", newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
@@ -288,7 +288,7 @@ func TestAppStateDeterminism(t *testing.T) {
 
 			db := dbm.NewMemDB()
 
-			app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), interBlockCacheOpt())
+			app := NewTerraApp(logger, db, nil, true, simapp.FlagPeriodValue, map[int64]bool{}, wasmconfig.DefaultConfig(), false, interBlockCacheOpt())
 
 			fmt.Printf(
 				"running non-determinism simulation; seed %d: %d/%d, attempt: %d/%d\n",
