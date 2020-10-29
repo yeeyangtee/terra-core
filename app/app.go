@@ -356,6 +356,7 @@ func NewTerraApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 			tmos.Exit(err.Error())
 		}
 	}
+
 	return app
 }
 
