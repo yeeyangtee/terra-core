@@ -250,20 +250,6 @@ func NewTerraApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	// create wasm keeper with msg parser & querier
 	app.wasmKeeper = wasm.NewKeeper(app.cdc, keys[wasm.StoreKey], app.subspaces[wasm.ModuleName],
 		app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.treasuryKeeper, bApp.Router(), wasm.DefaultFeatures, wasmConfig)
-	app.wasmKeeper.RegisterMsgParsers(map[string]wasm.WasmMsgParserInterface{
-		wasm.WasmMsgParserRouteBank:    bankwasm.NewWasmMsgParser(),
-		wasm.WasmMsgParserRouteStaking: stakingwasm.NewWasmMsgParser(),
-		wasm.WasmMsgParserRouteMarket:  marketwasm.NewWasmMsgParser(),
-		wasm.WasmMsgParserRouteWasm:    wasm.NewWasmMsgParser(),
-	})
-	app.wasmKeeper.RegisterQueriers(map[string]wasm.WasmQuerierInterface{
-		wasm.WasmQueryRouteBank:     bankwasm.NewWasmQuerier(app.bankKeeper),
-		wasm.WasmQueryRouteStaking:  stakingwasm.NewWasmQuerier(app.stakingKeeper),
-		wasm.WasmQueryRouteMarket:   marketwasm.NewWasmQuerier(app.marketKeeper),
-		wasm.WasmQueryRouteOracle:   oraclewasm.NewWasmQuerier(app.oracleKeeper),
-		wasm.WasmQueryRouteTreasury: treasurywasm.NewWasmQuerier(app.treasuryKeeper),
-		wasm.WasmQueryRouteWasm:     wasm.NewWasmQuerier(app.wasmKeeper),
-	})
 
 	// register the proposal types
 	govRouter := gov.NewRouter()
@@ -279,6 +265,21 @@ func NewTerraApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	app.stakingKeeper = *stakingKeeper.SetHooks(
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
+
+	app.wasmKeeper.RegisterMsgParsers(map[string]wasm.WasmMsgParserInterface{
+		wasm.WasmMsgParserRouteBank:    bankwasm.NewWasmMsgParser(),
+		wasm.WasmMsgParserRouteStaking: stakingwasm.NewWasmMsgParser(),
+		wasm.WasmMsgParserRouteMarket:  marketwasm.NewWasmMsgParser(),
+		wasm.WasmMsgParserRouteWasm:    wasm.NewWasmMsgParser(),
+	})
+	app.wasmKeeper.RegisterQueriers(map[string]wasm.WasmQuerierInterface{
+		wasm.WasmQueryRouteBank:     bankwasm.NewWasmQuerier(app.bankKeeper),
+		wasm.WasmQueryRouteStaking:  stakingwasm.NewWasmQuerier(app.stakingKeeper),
+		wasm.WasmQueryRouteMarket:   marketwasm.NewWasmQuerier(app.marketKeeper),
+		wasm.WasmQueryRouteOracle:   oraclewasm.NewWasmQuerier(app.oracleKeeper),
+		wasm.WasmQueryRouteTreasury: treasurywasm.NewWasmQuerier(app.treasuryKeeper),
+		wasm.WasmQueryRouteWasm:     wasm.NewWasmQuerier(app.wasmKeeper),
+	})
 
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
@@ -303,7 +304,8 @@ func NewTerraApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName, evidence.ModuleName)
+	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
+		evidence.ModuleName, wasm.ModuleName)
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, oracle.ModuleName, gov.ModuleName, market.ModuleName,
 		treasury.ModuleName, msgauth.ModuleName, staking.ModuleName)
 
