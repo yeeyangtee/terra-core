@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerror "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/terra-project/core/x/wasm/internal/types"
@@ -160,7 +161,7 @@ func TestGasCostOnQuery(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// external limit has no effect (we get a panic if this is enforced)
-			keeper.queryGasLimit = 1000
+			keeper.wasmConfig.ContractQueryGasLimit = 1000
 
 			// make sure we set a limit before calling
 			ctx = ctx.WithGasMeter(sdk.NewGasMeter(tc.gasLimit))
@@ -239,7 +240,7 @@ func TestGasOnExternalQuery(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// set the external gas limit (normally from config file)
-			keeper.queryGasLimit = tc.gasLimit
+			keeper.wasmConfig.ContractQueryGasLimit = tc.gasLimit
 			querier := NewQuerier(keeper)
 
 			recurse := tc.msg
@@ -251,11 +252,9 @@ func TestGasOnExternalQuery(t *testing.T) {
 			require.NoError(t, err)
 
 			if tc.expectPanic {
-				require.Panics(t, func() {
-					// this should run out of gas
-					_, err = querier(ctx, []string{types.QueryContractStore}, abci.RequestQuery{Data: []byte(bz)})
-					t.Logf("%v", err)
-				})
+				_, err = querier(ctx, []string{types.QueryContractStore}, abci.RequestQuery{Data: []byte(bz)})
+				require.Error(t, err)
+				require.Contains(t, err.Error(), sdkerror.ErrOutOfGas.Error())
 			} else {
 				// otherwise, make sure we get a good success
 				_, err = querier(ctx, []string{types.QueryContractStore}, abci.RequestQuery{Data: []byte(bz)})

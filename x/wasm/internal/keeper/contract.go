@@ -7,17 +7,26 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/crypto"
+	core "github.com/terra-project/core/types"
 	"github.com/terra-project/core/x/wasm/internal/types"
 )
 
 // CompileCode uncompress the wasm code bytes and store the code to local file system
 func (k Keeper) CompileCode(ctx sdk.Context, wasmCode []byte) (codeHash []byte, err error) {
 	if uint64(len(wasmCode)) > k.MaxContractSize(ctx) {
+		if core.IsWaitingForSoftfork(ctx, 1) {
+			return nil, sdkerrors.Wrap(types.ErrInternal, "contract size is too huge")
+		}
+
 		return nil, sdkerrors.Wrap(types.ErrStoreCodeFailed, "contract size is too huge")
 	}
 
 	wasmCode, err = k.uncompress(ctx, wasmCode)
 	if err != nil {
+		if core.IsWaitingForSoftfork(ctx, 1) {
+			return nil, sdkerrors.Wrap(types.ErrInternal, err.Error())
+		}
+
 		return nil, sdkerrors.Wrap(types.ErrStoreCodeFailed, err.Error())
 	}
 
@@ -26,6 +35,10 @@ func (k Keeper) CompileCode(ctx sdk.Context, wasmCode []byte) (codeHash []byte, 
 
 	codeHash, err = k.wasmer.Create(wasmCode)
 	if err != nil {
+		if core.IsWaitingForSoftfork(ctx, 1) {
+			return nil, sdkerrors.Wrap(types.ErrInternal, err.Error())
+		}
+
 		return nil, sdkerrors.Wrap(types.ErrStoreCodeFailed, err.Error())
 	}
 
@@ -136,9 +149,23 @@ func (k Keeper) InstantiateContract(
 	k.SetLastInstanceID(ctx, instanceID)
 	k.SetContractInfo(ctx, contractAddress, contractInfo)
 
-	// emit all events from the contract
-	events := types.ParseEvents(res.Log, contractAddress)
-	ctx.EventManager().EmitEvents(events)
+	// check contract creator address is in whitelist
+	if _, ok := k.loggingWhitelist[creator.String()]; ok || k.wasmConfig.LoggingAll() {
+		events := types.ParseEvents(res.Log, contractAddress)
+		ctx.EventManager().EmitEvents(events)
+		if ok && !ctx.IsCheckTx() && !ctx.IsReCheckTx() {
+			// If a contract is created from whitelist,
+			// add the contract to whitelist.
+			// It can be canceled due to transaction failure,
+			// but that is tiny cost so ignore that case.
+			contractAddr := contractAddress.String()
+			k.loggingWhitelist[contractAddr] = true
+			k.wasmConfig.ContractLoggingWhitelist += "," + contractAddr
+
+			// store updated config to local wasm.toml
+			k.StoreConfig()
+		}
+	}
 
 	err = k.dispatchMessages(ctx, contractAddress, res.Messages)
 	if err != nil {
@@ -153,7 +180,11 @@ func (k Keeper) ExecuteContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 	ctx.GasMeter().ConsumeGas(types.InstanceCost, "Loading CosmWasm module: execute")
 
 	if uint64(len(exeMsg)) > k.MaxContractMsgSize(ctx) {
-		return nil, sdkerrors.Wrap(types.ErrInstantiateFailed, "execute msg size is too huge")
+		if core.IsWaitingForSoftfork(ctx, 1) {
+			return nil, sdkerrors.Wrap(types.ErrInstantiateFailed, "execute msg size is too huge")
+		}
+
+		return nil, sdkerrors.Wrap(types.ErrExecuteFailed, "execute msg size is too huge")
 	}
 
 	codeInfo, storePrefix, err := k.getContractDetails(ctx, contractAddress)
@@ -186,8 +217,11 @@ func (k Keeper) ExecuteContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 		return nil, sdkerrors.Wrap(types.ErrExecuteFailed, err.Error())
 	}
 
-	events := types.ParseEvents(res.Log, contractAddress)
-	ctx.EventManager().EmitEvents(events)
+	// emit all events from the contract in the logging whitelist
+	if _, ok := k.loggingWhitelist[contractAddress.String()]; k.wasmConfig.LoggingAll() || ok {
+		events := types.ParseEvents(res.Log, contractAddress)
+		ctx.EventManager().EmitEvents(events)
+	}
 
 	err = k.dispatchMessages(ctx, contractAddress, res.Messages)
 	if err != nil {
@@ -246,9 +280,11 @@ func (k Keeper) MigrateContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 		return nil, sdkerrors.Wrap(types.ErrMigrationFailed, err.Error())
 	}
 
-	// emit all events from this contract itself
-	events := types.ParseEvents(res.Log, contractAddress)
-	ctx.EventManager().EmitEvents(events)
+	// emit all events from the contract in the logging whitelist
+	if _, ok := k.loggingWhitelist[contractAddress.String()]; k.wasmConfig.LoggingAll() || ok {
+		events := types.ParseEvents(res.Log, contractAddress)
+		ctx.EventManager().EmitEvents(events)
+	}
 
 	contractInfo.CodeID = newCodeID
 	k.SetContractInfo(ctx, contractAddress, contractInfo)

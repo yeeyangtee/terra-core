@@ -1,6 +1,7 @@
 package oracle
 
 import (
+	"fmt"
 	"math"
 	"testing"
 
@@ -183,7 +184,7 @@ func TestOracleTally(t *testing.T) {
 
 		decExchangeRate := sdk.NewDecWithPrec(int64(rate*math.Pow10(keeper.OracleDecPrecision)), int64(keeper.OracleDecPrecision))
 
-		salt := string(i)
+		salt := fmt.Sprintf("%d", i)
 		hash := GetVoteHash(salt, decExchangeRate, core.MicroSDRDenom, valAddrs[i])
 
 		prevoteMsg := NewMsgExchangeRatePrevote(
@@ -682,7 +683,7 @@ func TestVoteTargets(t *testing.T) {
 }
 
 func TestAbstainWithSmallStakingPower(t *testing.T) {
-	input, h := setup_with_small_voting_power(t)
+	input, h := setupWithSmallVotingPower(t)
 
 	// clear tobin tax to reset vote targets
 	input.OracleKeeper.ClearTobinTaxes(input.Ctx)
