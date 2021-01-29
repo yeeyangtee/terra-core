@@ -4,7 +4,9 @@ import "strings"
 
 // config default values
 const (
-	defaultContractQueryGasLimit = uint64(3000000)
+	defaultContractQueryGasLimit   = uint64(3000000)
+	defaultContractMemoryCacheSize = uint32(100) // in MiB
+	defaultContractDebugMode       = false
 )
 
 // config flags for wasm module
@@ -28,6 +30,13 @@ type BaseConfig struct {
 	// are stored in the local storage. To keep all logs,
 	// a node operator can set "*" (not recommended).
 	ContractLoggingWhitelist string `mapstructure:"contract-logging-whitelist"`
+
+	// The size in MiB (NOT bytes) of an in-memory cache for Wasm modules.
+	// Set to 0 to disable.
+	ContractMemoryCacheSize uint32 `mapstructure:"contract-memory-cash-size"`
+
+	// The flag to enable log what contract print
+	ContractDebugMode bool `mapstructure:"contract-debug-mode"`
 }
 
 // Config defines the server's top level configuration
@@ -42,6 +51,8 @@ func DefaultConfig() *Config {
 		BaseConfig: BaseConfig{
 			ContractQueryGasLimit:    defaultContractQueryGasLimit,
 			ContractLoggingWhitelist: "",
+			ContractMemoryCacheSize:  defaultContractMemoryCacheSize,
+			ContractDebugMode:        defaultContractDebugMode,
 		},
 		loggingAll: false,
 	}

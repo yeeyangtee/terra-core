@@ -7,7 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 
-	wasmTypes "github.com/CosmWasm/go-cosmwasm/types"
+	wasmTypes "github.com/CosmWasm/wasmvm/types"
 
 	wasm "github.com/terra-project/core/x/wasm/exported"
 )

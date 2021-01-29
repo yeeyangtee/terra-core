@@ -15,7 +15,8 @@ import (
 	core "github.com/terra-project/core/types"
 	"github.com/terra-project/core/x/wasm/internal/types"
 
-	wasmTypes "github.com/CosmWasm/go-cosmwasm/types"
+	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmTypes "github.com/CosmWasm/wasmvm/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -70,14 +71,14 @@ func TestMaskReflectContractSend(t *testing.T) {
 	// upload mask code
 	maskCode, err := ioutil.ReadFile("./testdata/mask.wasm")
 	require.NoError(t, err)
-	maskID, err := keeper.StoreCode(ctx, creator, maskCode)
+	maskID, err := keeper.StoreCode(ctx, creator, maskCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), maskID)
 
 	// upload hackatom escrow code
 	escrowCode, err := ioutil.ReadFile("./testdata/contract.wasm")
 	require.NoError(t, err)
-	escrowID, err := keeper.StoreCode(ctx, creator, escrowCode)
+	escrowID, err := keeper.StoreCode(ctx, creator, escrowCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(2), escrowID)
 
@@ -165,7 +166,7 @@ func TestMaskReflectCustomMsg(t *testing.T) {
 	// upload code
 	maskCode, err := ioutil.ReadFile("./testdata/mask.wasm")
 	require.NoError(t, err)
-	codeID, err := keeper.StoreCode(ctx, creator, maskCode)
+	codeID, err := keeper.StoreCode(ctx, creator, maskCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), codeID)
 
@@ -269,7 +270,7 @@ func TestMaskReflectCustomQuery(t *testing.T) {
 	// upload code
 	maskCode, err := ioutil.ReadFile("./testdata/mask.wasm")
 	require.NoError(t, err)
-	codeID, err := keeper.StoreCode(ctx, creator, maskCode)
+	codeID, err := keeper.StoreCode(ctx, creator, maskCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), codeID)
 

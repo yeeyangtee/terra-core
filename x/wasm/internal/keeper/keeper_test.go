@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/terra-project/core/x/wasm/internal/types"
+
+	wasmvm "github.com/CosmWasm/wasmvm"
 )
 
 func TestNewKeeper(t *testing.T) {
@@ -20,7 +22,7 @@ func TestCodeInfo(t *testing.T) {
 
 	codeID := uint64(1)
 	creatorAddr := addrFromUint64(codeID)
-	expected := types.NewCodeInfo(codeID, []byte{1, 2, 3}, creatorAddr)
+	expected := types.NewCodeInfo(codeID, []byte{1, 2, 3}, creatorAddr, wasmvm.VMVersion3)
 	keeper.SetCodeInfo(ctx, 1, expected)
 
 	as, err := keeper.GetCodeInfo(ctx, codeID)

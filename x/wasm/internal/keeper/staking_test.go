@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -109,7 +110,7 @@ func TestInitializeStaking(t *testing.T) {
 	// upload staking derivates code
 	stakingCode, err := ioutil.ReadFile("./testdata/staking.wasm")
 	require.NoError(t, err)
-	stakingID, err := keeper.StoreCode(ctx, creatorAddr, stakingCode)
+	stakingID, err := keeper.StoreCode(ctx, creatorAddr, stakingCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), stakingID)
 
@@ -177,7 +178,7 @@ func initializeStaking(t *testing.T, input TestInput) InitInfo {
 	// upload staking derivates code
 	stakingCode, err := ioutil.ReadFile("./testdata/staking.wasm")
 	require.NoError(t, err)
-	stakingID, err := keeper.StoreCode(ctx, creatorAddr, stakingCode)
+	stakingID, err := keeper.StoreCode(ctx, creatorAddr, stakingCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), stakingID)
 

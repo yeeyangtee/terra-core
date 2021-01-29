@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/viper"
 
-	wasmTypes "github.com/CosmWasm/go-cosmwasm/types"
+	wasmTypes "github.com/CosmWasm/wasmvm/types"
 
 	"github.com/stretchr/testify/require"
 

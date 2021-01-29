@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	wasmTypes "github.com/CosmWasm/go-cosmwasm/types"
+	wasmTypes "github.com/CosmWasm/wasmvm/types"
 
 	"github.com/terra-project/core/x/oracle/internal/keeper"
 	wasm "github.com/terra-project/core/x/wasm/exported"

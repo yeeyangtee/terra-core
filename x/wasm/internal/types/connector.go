@@ -6,14 +6,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	wasmTypes "github.com/CosmWasm/go-cosmwasm/types"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 )
 
 // DefaultFeatures - Cosmwasm feature
 const DefaultFeatures = "staking,terra"
 
-// ParseEvents converts wasm LogAttributes into an sdk.Events (with 0 or 1 elements)
-func ParseEvents(logs []wasmTypes.LogAttribute, contractAddr sdk.AccAddress) sdk.Events {
+// ParseEvents converts wasm EventAttribute into an sdk.Events (with 0 or 1 elements)
+func ParseEvents(logs []wasmvmtypes.EventAttribute, contractAddr sdk.AccAddress) sdk.Events {
 	if len(logs) == 0 {
 		return nil
 	}
@@ -32,7 +32,7 @@ func ParseEvents(logs []wasmTypes.LogAttribute, contractAddr sdk.AccAddress) sdk
 }
 
 // ParseToCoin converts wasm coin to sdk.Coin
-func ParseToCoin(wasmCoin wasmTypes.Coin) (coin sdk.Coin, err error) {
+func ParseToCoin(wasmCoin wasmvmtypes.Coin) (coin sdk.Coin, err error) {
 	amount, ok := sdk.NewIntFromString(wasmCoin.Amount)
 	if !ok {
 		err = sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, fmt.Sprintf("Failed to parse %s", coin.Amount))
@@ -47,7 +47,7 @@ func ParseToCoin(wasmCoin wasmTypes.Coin) (coin sdk.Coin, err error) {
 }
 
 // ParseToCoins converts wasm coins to sdk.Coins
-func ParseToCoins(wasmCoins []wasmTypes.Coin) (coins sdk.Coins, err error) {
+func ParseToCoins(wasmCoins []wasmvmtypes.Coin) (coins sdk.Coins, err error) {
 	for _, coin := range wasmCoins {
 		c, err := ParseToCoin(coin)
 		if err != nil {
@@ -60,16 +60,16 @@ func ParseToCoins(wasmCoins []wasmTypes.Coin) (coins sdk.Coins, err error) {
 }
 
 // EncodeSdkCoin - encode sdk coin to wasm coin
-func EncodeSdkCoin(coin sdk.Coin) wasmTypes.Coin {
-	return wasmTypes.Coin{
+func EncodeSdkCoin(coin sdk.Coin) wasmvmtypes.Coin {
+	return wasmvmtypes.Coin{
 		Denom:  coin.Denom,
 		Amount: coin.Amount.String(),
 	}
 }
 
 // EncodeSdkCoins - encode sdk coins to wasm coins
-func EncodeSdkCoins(coins sdk.Coins) wasmTypes.Coins {
-	encodedCoins := make(wasmTypes.Coins, len(coins))
+func EncodeSdkCoins(coins sdk.Coins) wasmvmtypes.Coins {
+	encodedCoins := make(wasmvmtypes.Coins, len(coins))
 	for i, c := range coins {
 		encodedCoins[i] = EncodeSdkCoin(c)
 	}

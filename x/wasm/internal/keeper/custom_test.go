@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	wasmTypes "github.com/CosmWasm/go-cosmwasm/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -19,6 +18,9 @@ import (
 	oraclewasm "github.com/terra-project/core/x/oracle/wasm"
 	treasurywasm "github.com/terra-project/core/x/treasury/wasm"
 	"github.com/terra-project/core/x/wasm/internal/types"
+
+	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 )
 
 // MakerInitMsg nolint
@@ -45,8 +47,8 @@ type sellPayload struct {
 }
 
 type sendPayload struct {
-	Coin      wasmTypes.Coin `json:"coin"`
-	Recipient string         `json:"recipient"`
+	Coin      wasmvmtypes.Coin `json:"coin"`
+	Recipient string           `json:"recipient"`
 }
 
 // MakerQueryMsg nolint
@@ -55,12 +57,12 @@ type MakerQueryMsg struct {
 }
 
 type simulateQuery struct {
-	OfferCoin wasmTypes.Coin `json:"offer"`
+	OfferCoin wasmvmtypes.Coin `json:"offer"`
 }
 
 type simulateResponse struct {
-	SellCoin wasmTypes.Coin `json:"sell"`
-	BuyCoin  wasmTypes.Coin `json:"buy"`
+	SellCoin wasmvmtypes.Coin `json:"sell"`
+	BuyCoin  wasmvmtypes.Coin `json:"buy"`
 }
 
 // MakerTreasuryQuerymsg nolint
@@ -91,8 +93,8 @@ type bindingsTesterExchangeRatesQueryMsg struct {
 	ExchangeRates exchangeRatesQueryMsg `json:"exchange_rates"`
 }
 type swapQueryMsg struct {
-	OfferCoin wasmTypes.Coin `json:"offer_coin"`
-	AskDenom  string         `json:"ask_denom"`
+	OfferCoin wasmvmtypes.Coin `json:"offer_coin"`
+	AskDenom  string           `json:"ask_denom"`
 }
 type taxRateQueryMsg struct{}
 type taxCapQueryMsg struct {
@@ -120,7 +122,7 @@ func TestInstantiateMaker(t *testing.T) {
 	// upload staking derivates code
 	makingCode, err := ioutil.ReadFile("./testdata/maker.wasm")
 	require.NoError(t, err)
-	makerID, err := keeper.StoreCode(ctx, creatorAddr, makingCode)
+	makerID, err := keeper.StoreCode(ctx, creatorAddr, makingCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), makerID)
 
@@ -152,7 +154,7 @@ func TestMarketQuerier(t *testing.T) {
 
 	swapQueryMsg := bindingsTesterSwapQueryMsg{
 		Swap: swapQueryMsg{
-			OfferCoin: wasmTypes.Coin{
+			OfferCoin: wasmvmtypes.Coin{
 				Denom:  core.MicroSDRDenom,
 				Amount: offerCoin.Amount.String(),
 			},
@@ -172,7 +174,7 @@ func TestMarketQuerier(t *testing.T) {
 	var swapResponse marketwasm.SwapQueryResponse
 	err = json.Unmarshal(res, &swapResponse)
 	require.NoError(t, err)
-	require.Equal(t, wasmTypes.Coin{
+	require.Equal(t, wasmvmtypes.Coin{
 		Denom:  core.MicroLunaDenom,
 		Amount: retAmount.String(),
 	}, swapResponse.Receive)
@@ -414,7 +416,7 @@ func setupMakerContract(t *testing.T) (input TestInput, creatorAddr, makerAddr s
 	// upload staking derivates code
 	makingCode, err := ioutil.ReadFile("./testdata/maker.wasm")
 	require.NoError(t, err)
-	makerID, err := keeper.StoreCode(ctx, creatorAddr, makingCode)
+	makerID, err := keeper.StoreCode(ctx, creatorAddr, makingCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), makerID)
 
@@ -451,7 +453,7 @@ func setupBindingsTesterContract(t *testing.T) (input TestInput, creatorAddr, bi
 	// upload staking derivates code
 	bindingsTCode, err := ioutil.ReadFile("./testdata/bindings_tester.wasm")
 	require.NoError(t, err)
-	bindingsTesterID, err := keeper.StoreCode(ctx, creatorAddr, bindingsTCode)
+	bindingsTesterID, err := keeper.StoreCode(ctx, creatorAddr, bindingsTCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), bindingsTesterID)
 

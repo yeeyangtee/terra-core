@@ -18,6 +18,8 @@ import (
 
 	core "github.com/terra-project/core/types"
 	"github.com/terra-project/core/x/wasm/internal/types"
+
+	wasmvm "github.com/CosmWasm/wasmvm"
 )
 
 func TestStoreCode(t *testing.T) {
@@ -37,7 +39,7 @@ func TestStoreCode(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create contract
-	contractID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	contractID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), contractID)
 
@@ -59,7 +61,7 @@ func TestStoreCodeWithHugeCode(t *testing.T) {
 
 	_, _, creator := keyPubAddr()
 	wasmCode := make([]byte, keeper.MaxContractSize(ctx)+1)
-	_, err = keeper.StoreCode(ctx, creator, wasmCode)
+	_, err = keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion3)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "contract size is too huge")
@@ -81,7 +83,7 @@ func TestCreateWithGzippedPayload(t *testing.T) {
 	wasmCode, err := ioutil.ReadFile("./testdata/contract.wasm.gzip")
 	require.NoError(t, err)
 
-	contractID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	contractID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), contractID)
 	// and verify content
@@ -104,10 +106,10 @@ func TestInstantiate(t *testing.T) {
 	deposit := sdk.NewCoins(sdk.NewInt64Coin(core.MicroLunaDenom, 100000))
 	creator := createFakeFundedAccount(ctx, accKeeper, deposit)
 
-	wasmCode, err := ioutil.ReadFile("./testdata/contract.wasm")
+	wasmCode, err := ioutil.ReadFile("./testdata/contractv4.wasm")
 	require.NoError(t, err)
 
-	codeID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	codeID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion4)
 	require.NoError(t, err)
 
 	_, _, bob := keyPubAddr()
@@ -160,10 +162,10 @@ func TestInstantiateWithBigInitMsg(t *testing.T) {
 	deposit := sdk.NewCoins(sdk.NewInt64Coin(core.MicroLunaDenom, 100000))
 	creator := createFakeFundedAccount(ctx, accKeeper, deposit)
 
-	wasmCode, err := ioutil.ReadFile("./testdata/contract.wasm")
+	wasmCode, err := ioutil.ReadFile("./testdata/contractv4.wasm")
 	require.NoError(t, err)
 
-	codeID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	codeID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion4)
 	require.NoError(t, err)
 
 	// test max init msg size
@@ -187,10 +189,10 @@ func TestExecute(t *testing.T) {
 	creator := createFakeFundedAccount(ctx, accKeeper, deposit.Add(deposit...))
 	fred := createFakeFundedAccount(ctx, accKeeper, topUp)
 
-	wasmCode, err := ioutil.ReadFile("./testdata/contract.wasm")
+	wasmCode, err := ioutil.ReadFile("./testdata/contractv4.wasm")
 	require.NoError(t, err)
 
-	codeID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	codeID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion4)
 	require.NoError(t, err)
 
 	_, _, bob := keyPubAddr()
@@ -224,7 +226,7 @@ func TestExecute(t *testing.T) {
 	trialCtx := ctx.WithMultiStore(ctx.MultiStore().CacheWrap().(sdk.MultiStore))
 	res, err := keeper.ExecuteContract(trialCtx, addr, creator, []byte(`{"release":{}}`), nil)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unauthorized")
+	require.Contains(t, err.Error(), "Unauthorized")
 
 	// verifier can execute, and get proper gas amount
 	start := time.Now()
@@ -288,7 +290,7 @@ func TestExecuteWithHugeMsg(t *testing.T) {
 	wasmCode, err := ioutil.ReadFile("./testdata/contract.wasm")
 	require.NoError(t, err)
 
-	codeID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	codeID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 
 	_, _, bob := keyPubAddr()
@@ -326,7 +328,7 @@ func TestExecuteWithPanic(t *testing.T) {
 	wasmCode, err := ioutil.ReadFile("./testdata/contract.wasm")
 	require.NoError(t, err)
 
-	contractID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	contractID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 
 	_, _, bob := keyPubAddr()
@@ -361,7 +363,7 @@ func TestExecuteWithCpuLoop(t *testing.T) {
 	wasmCode, err := ioutil.ReadFile("./testdata/contract.wasm")
 	require.NoError(t, err)
 
-	contractID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	contractID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 
 	_, _, bob := keyPubAddr()
@@ -401,7 +403,7 @@ func TestExecuteWithStorageLoop(t *testing.T) {
 	wasmCode, err := ioutil.ReadFile("./testdata/contract.wasm")
 	require.NoError(t, err)
 
-	contractID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	contractID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 
 	_, _, bob := keyPubAddr()
@@ -441,9 +443,12 @@ func TestMigrate(t *testing.T) {
 	wasmCode, err := ioutil.ReadFile("./testdata/contract.wasm")
 	require.NoError(t, err)
 
-	originalContractID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	wasmCodeV4, err := ioutil.ReadFile("./testdata/contractv4.wasm")
 	require.NoError(t, err)
-	newContractID, err := keeper.StoreCode(ctx, creator, wasmCode)
+
+	originalContractID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion3)
+	require.NoError(t, err)
+	newContractID, err := keeper.StoreCode(ctx, creator, wasmCodeV4, wasmvm.VMVersion4)
 	require.NoError(t, err)
 	require.NotEqual(t, originalContractID, newContractID)
 
@@ -569,9 +574,9 @@ func TestMigrateWithDispatchedMessage(t *testing.T) {
 	burnerCode, err := ioutil.ReadFile("./testdata/burner.wasm")
 	require.NoError(t, err)
 
-	originalContractID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	originalContractID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
-	burnerContractID, err := keeper.StoreCode(ctx, creator, burnerCode)
+	burnerContractID, err := keeper.StoreCode(ctx, creator, burnerCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 	require.NotEqual(t, originalContractID, burnerContractID)
 

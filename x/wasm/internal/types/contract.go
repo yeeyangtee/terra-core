@@ -3,7 +3,8 @@ package types
 import (
 	"fmt"
 
-	wasmTypes "github.com/CosmWasm/go-cosmwasm/types"
+	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	core "github.com/terra-project/core/types"
@@ -25,9 +26,10 @@ func (m Model) String() string {
 
 // CodeInfo is data for the uploaded contract WASM code
 type CodeInfo struct {
-	CodeID   uint64           `json:"code_id"`
-	CodeHash core.Base64Bytes `json:"code_hash"`
-	Creator  sdk.AccAddress   `json:"creator"`
+	CodeID    uint64           `json:"code_id"`
+	CodeHash  core.Base64Bytes `json:"code_hash"`
+	Creator   sdk.AccAddress   `json:"creator"`
+	VMVersion wasmvm.VMVersion `json:"vm_version"`
 }
 
 // String implements fmt.Stringer interface
@@ -35,16 +37,18 @@ func (ci CodeInfo) String() string {
 	return fmt.Sprintf(`CodeInfo
 	CodeID:      %d,
 	CodeHash:    %s, 
-	Creator:     %s`,
-		ci.CodeID, ci.CodeHash, ci.Creator)
+	Creator:     %s,
+	VMVersion:   %d`,
+		ci.CodeID, ci.CodeHash, ci.Creator, ci.VMVersion)
 }
 
 // NewCodeInfo fills a new Contract struct
-func NewCodeInfo(codeID uint64, codeHash []byte, creator sdk.AccAddress) CodeInfo {
+func NewCodeInfo(codeID uint64, codeHash []byte, creator sdk.AccAddress, vmVersion wasmvm.VMVersion) CodeInfo {
 	return CodeInfo{
-		CodeID:   codeID,
-		CodeHash: codeHash,
-		Creator:  creator,
+		CodeID:    codeID,
+		CodeHash:  codeHash,
+		Creator:   creator,
+		VMVersion: vmVersion,
 	}
 }
 
@@ -80,28 +84,32 @@ func (ci ContractInfo) String() string {
 		ci.Address, ci.CodeID, ci.Owner, ci.InitMsg, ci.Migratable)
 }
 
-// NewWasmAPIParams initializes params for a contract instance
-func NewWasmAPIParams(ctx sdk.Context, sender sdk.AccAddress, deposit sdk.Coins, contractAddr sdk.AccAddress) wasmTypes.Env {
-	return wasmTypes.Env{
-		Block: wasmTypes.BlockInfo{
+// NewWasmEnv initializes params for a contract instance
+func NewWasmEnv(ctx sdk.Context, contractAddr sdk.AccAddress) wasmvmtypes.Env {
+	return wasmvmtypes.Env{
+		Block: wasmvmtypes.BlockInfo{
 			Height:  uint64(ctx.BlockHeight()),
 			Time:    uint64(ctx.BlockTime().Unix()),
 			ChainID: ctx.ChainID(),
 		},
-		Message: wasmTypes.MessageInfo{
-			Sender:    sender.String(),
-			SentFunds: NewWasmCoins(deposit),
-		},
-		Contract: wasmTypes.ContractInfo{
+		Contract: wasmvmtypes.ContractInfo{
 			Address: contractAddr.String(),
 		},
 	}
 }
 
+// NewWasmInfo initializes the MessageInfo for a contract instance
+func NewWasmInfo(creator sdk.AccAddress, deposit sdk.Coins) wasmvmtypes.MessageInfo {
+	return wasmvmtypes.MessageInfo{
+		Sender:    creator.String(),
+		SentFunds: NewWasmCoins(deposit),
+	}
+}
+
 // NewWasmCoins translates between Cosmos SDK coins and Wasm coins
-func NewWasmCoins(cosmosCoins sdk.Coins) (wasmCoins []wasmTypes.Coin) {
+func NewWasmCoins(cosmosCoins sdk.Coins) (wasmCoins []wasmvmtypes.Coin) {
 	for _, coin := range cosmosCoins {
-		wasmCoin := wasmTypes.Coin{
+		wasmCoin := wasmvmtypes.Coin{
 			Denom:  coin.Denom,
 			Amount: coin.Amount.String(),
 		}

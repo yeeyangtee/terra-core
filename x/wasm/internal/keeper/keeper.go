@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"path/filepath"
 
-	wasm "github.com/CosmWasm/go-cosmwasm"
 	"github.com/spf13/viper"
+
+	wasmvm "github.com/CosmWasm/wasmvm"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -34,7 +35,7 @@ type Keeper struct {
 
 	router sdk.Router
 
-	wasmer    wasm.Wasmer
+	wasmer    wasmvm.VM
 	querier   types.Querier
 	msgParser types.MsgParser
 
@@ -50,7 +51,14 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey,
 	supportedFeatures string,
 	wasmConfig *config.Config) Keeper {
 	homeDir := viper.GetString(flags.FlagHome)
-	wasmer, err := wasm.NewWasmer(filepath.Join(homeDir, config.DBDir), supportedFeatures, 0)
+
+	wasmer, err := wasmvm.NewVM(
+		filepath.Join(homeDir, config.DBDir),
+		supportedFeatures,
+		types.ContractMemoryLimit,
+		wasmConfig.ContractDebugMode,
+		wasmConfig.ContractMemoryCacheSize,
+	)
 
 	if err != nil {
 		panic(err)
@@ -200,7 +208,7 @@ func (k Keeper) GetByteCode(ctx sdk.Context, codeID uint64) ([]byte, error) {
 		return nil, sdkErr
 	}
 
-	byteCode, err := k.wasmer.GetCode(codeInfo.CodeHash.Bytes())
+	byteCode, err := k.wasmer.GetCode(codeInfo.CodeHash.Bytes(), codeInfo.VMVersion)
 	if err != nil {
 		return nil, err
 	}

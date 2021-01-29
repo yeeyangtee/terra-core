@@ -5,8 +5,8 @@ WORKDIR /go/src/github.com/terra-project/core
 COPY go.* /go/src/github.com/terra-project/core/
 
 RUN apk add --no-cache git \
-    && go mod download github.com/CosmWasm/go-cosmwasm \
-    && export GO_WASM_DIR=$(go list -f "{{ .Dir }}" -m github.com/CosmWasm/go-cosmwasm) \
+    && go mod download github.com/CosmWasm/wasmvm \
+    && export GO_WASM_DIR=$(go list -f "{{ .Dir }}" -m github.com/CosmWasm/wasmvm) \
     && cd ${GO_WASM_DIR} \
     && cargo build --release --features backtraces --example muslc \
     && mv ${GO_WASM_DIR}/target/release/examples/libmuslc.a /lib/libgo_cosmwasm_muslc.a

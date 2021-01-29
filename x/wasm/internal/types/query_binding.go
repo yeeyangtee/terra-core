@@ -3,7 +3,7 @@ package types
 import (
 	"encoding/json"
 
-	wasmTypes "github.com/CosmWasm/go-cosmwasm/types"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -13,7 +13,7 @@ import (
 
 // WasmQuerierInterface - query registration interface for other modules
 type WasmQuerierInterface interface {
-	Query(ctx sdk.Context, request wasmTypes.QueryRequest) ([]byte, error)
+	Query(ctx sdk.Context, request wasmvmtypes.QueryRequest) ([]byte, error)
 	QueryCustom(ctx sdk.Context, data json.RawMessage) ([]byte, error)
 }
 
@@ -36,7 +36,7 @@ type WasmCustomQuery struct {
 	QueryData json.RawMessage `json:"query_data"`
 }
 
-var _ wasmTypes.Querier = Querier{}
+var _ wasmvmtypes.Querier = Querier{}
 
 // Routes of pre-determined wasm querier
 const (
@@ -59,8 +59,8 @@ func (q Querier) GasConsumed() uint64 {
 	return q.Ctx.GasMeter().GasConsumed()
 }
 
-// Query - interface for wasmTypes.Querier
-func (q Querier) Query(request wasmTypes.QueryRequest, gasLimit uint64) ([]byte, error) {
+// Query - interface for wasmvmtypes.Querier
+func (q Querier) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
 	// set a limit for a ctx
 	// gasLimit passed from the go-cosmwasm part, so need to divide it with gas multiplier
 	ctx := q.Ctx.WithGasMeter(sdk.NewGasMeter(gasLimit / GasMultiplier))
@@ -110,5 +110,5 @@ func (q Querier) Query(request wasmTypes.QueryRequest, gasLimit uint64) ([]byte,
 		return nil, sdkerrors.Wrap(ErrNoRegisteredQuerier, WasmQueryRouteWasm)
 	}
 
-	return nil, wasmTypes.Unknown{}
+	return nil, wasmvmtypes.Unknown{}
 }

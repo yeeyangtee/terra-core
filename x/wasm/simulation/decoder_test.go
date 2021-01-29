@@ -14,6 +14,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/terra-project/core/x/wasm/internal/types"
+
+	wasmvm "github.com/CosmWasm/wasmvm"
 )
 
 var (
@@ -39,7 +41,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 	binary.LittleEndian.PutUint64(lastCodeIDbz, 123)
 	binary.LittleEndian.PutUint64(lastInstanceIDbz, 456)
 
-	codeInfo := types.NewCodeInfo(1, []byte{1, 2, 3}, creatorAddr)
+	codeInfo := types.NewCodeInfo(1, []byte{1, 2, 3}, creatorAddr, wasmvm.VMVersion3)
 	contractInfo := types.NewContractInfo(1, contractAddr, creatorAddr, []byte{4, 5, 6}, true)
 	contractStore := []byte{7, 8, 9}
 

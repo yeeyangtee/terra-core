@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
-	wasmTypes "github.com/CosmWasm/go-cosmwasm/types"
+	wasmTypes "github.com/CosmWasm/wasmvm/types"
 
 	wasm "github.com/terra-project/core/x/wasm/exported"
 )
@@ -285,7 +285,7 @@ func (querier WasmQuerier) encodeDelegation(ctx sdk.Context, del staking.Delegat
 		Validator: del.ValidatorAddress.String(),
 		Amount:    wasm.EncodeSdkCoin(amount),
 		// TODO: AccumulatedRewards
-		AccumulatedRewards: wasmTypes.NewCoin(0, bondDenom),
+		AccumulatedRewards: wasmTypes.Coins{},
 		// TODO: Determine redelegate
 		CanRedelegate: wasmTypes.NewCoin(0, bondDenom),
 	}, nil

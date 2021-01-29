@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	wasmTypes "github.com/CosmWasm/go-cosmwasm/types"
+	wasmTypes "github.com/CosmWasm/wasmvm/types"
 	"github.com/stretchr/testify/require"
 
 	core "github.com/terra-project/core/types"

@@ -55,7 +55,8 @@ var (
 	EncodeSdkCoins                = types.EncodeSdkCoins
 	NewCodeInfo                   = types.NewCodeInfo
 	NewContractInfo               = types.NewContractInfo
-	NewWasmAPIParams              = types.NewWasmAPIParams
+	NewWasmEnv                    = types.NewWasmEnv
+	NewWasmInfo                   = types.NewWasmInfo
 	NewWasmCoins                  = types.NewWasmCoins
 	NewGenesisState               = types.NewGenesisState
 	DefaultGenesisState           = types.DefaultGenesisState

@@ -3,6 +3,8 @@ package wasm
 import (
 	"fmt"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/terra-project/core/x/wasm/internal/types"
@@ -32,7 +34,7 @@ func NewHandler(k Keeper) sdk.Handler {
 }
 
 func handleStoreCode(ctx sdk.Context, k Keeper, msg MsgStoreCode) (*sdk.Result, error) {
-	codeID, err := k.StoreCode(ctx, msg.Sender, msg.WASMByteCode)
+	codeID, err := k.StoreCode(ctx, msg.Sender, msg.WASMByteCode, wasmvm.VMVersion4)
 	if err != nil {
 		return nil, err
 	}

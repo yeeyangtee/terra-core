@@ -22,6 +22,13 @@ contract-query-gas-limit = "{{ .BaseConfig.ContractQueryGasLimit }}"
 # are stored in the local storage. To keep all logs,
 # a node operator can set "*" (not recommended).
 contract-logging-whitelist = "{{ .BaseConfig.ContractLoggingWhitelist }}"
+
+# The size in MiB (NOT bytes) of an in-memory cache for Wasm modules. 
+# Set to 0 to disable. 
+constract-memory-cache-size = "{{ .BaseConfig.ContractMemoryCacheSize }}"
+
+# The flag to enable log what contract print
+contract-debug-mode = "{{ .BaseConfig.ContractDebugMode }}"
 `
 
 var configTemplate *template.Template

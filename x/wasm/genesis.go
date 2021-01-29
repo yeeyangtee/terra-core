@@ -18,7 +18,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	keeper.SetLastInstanceID(ctx, data.LastInstanceID)
 
 	for _, code := range data.Codes {
-		codeHash, err := keeper.CompileCode(ctx, code.CodesBytes)
+		codeHash, err := keeper.CompileCode(ctx, code.CodesBytes, code.CodeInfo.VMVersion)
 		if err != nil {
 			panic(err)
 		}

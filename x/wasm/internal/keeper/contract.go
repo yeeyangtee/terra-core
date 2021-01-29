@@ -6,13 +6,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/tendermint/tendermint/crypto"
+
 	core "github.com/terra-project/core/types"
 	"github.com/terra-project/core/x/wasm/internal/types"
+
+	wasmvm "github.com/CosmWasm/wasmvm"
 )
 
 // CompileCode uncompress the wasm code bytes and store the code to local file system
-func (k Keeper) CompileCode(ctx sdk.Context, wasmCode []byte) (codeHash []byte, err error) {
+func (k Keeper) CompileCode(ctx sdk.Context, wasmCode []byte, vmVersion wasmvm.VMVersion) (codeHash []byte, err error) {
 	if uint64(len(wasmCode)) > k.MaxContractSize(ctx) {
 		if core.IsWaitingForSoftfork(ctx, 1) {
 			return nil, sdkerrors.Wrap(types.ErrInternal, "contract size is too huge")
@@ -33,7 +37,7 @@ func (k Keeper) CompileCode(ctx sdk.Context, wasmCode []byte) (codeHash []byte, 
 	// consume gas for compile cost
 	ctx.GasMeter().ConsumeGas(types.CompileCostPerByte*uint64(len(wasmCode)), "Compiling WASM Bytes Cost")
 
-	codeHash, err = k.wasmer.Create(wasmCode)
+	codeHash, err = k.wasmer.Create(wasmCode, vmVersion)
 	if err != nil {
 		if core.IsWaitingForSoftfork(ctx, 1) {
 			return nil, sdkerrors.Wrap(types.ErrInternal, err.Error())
@@ -46,8 +50,8 @@ func (k Keeper) CompileCode(ctx sdk.Context, wasmCode []byte) (codeHash []byte, 
 }
 
 // StoreCode uploads and compiles a WASM contract bytecode, returning a short identifier for the stored code
-func (k Keeper) StoreCode(ctx sdk.Context, creator sdk.AccAddress, wasmCode []byte) (codeID uint64, err error) {
-	codeHash, err := k.CompileCode(ctx, wasmCode)
+func (k Keeper) StoreCode(ctx sdk.Context, creator sdk.AccAddress, wasmCode []byte, vmVersion wasmvm.VMVersion) (codeID uint64, err error) {
+	codeHash, err := k.CompileCode(ctx, wasmCode, vmVersion)
 	if err != nil {
 		return 0, err
 	}
@@ -58,7 +62,7 @@ func (k Keeper) StoreCode(ctx sdk.Context, creator sdk.AccAddress, wasmCode []by
 	}
 
 	codeID++
-	codeInfo := types.NewCodeInfo(codeID, codeHash, creator)
+	codeInfo := types.NewCodeInfo(codeID, codeHash, creator, vmVersion)
 
 	k.SetLastCodeID(ctx, codeID)
 	k.SetCodeInfo(ctx, codeID, codeInfo)
@@ -118,7 +122,8 @@ func (k Keeper) InstantiateContract(
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &codeInfo)
 
 	// prepare params for contract instantiate call
-	apiParams := types.NewWasmAPIParams(ctx, creator, deposit, contractAddress)
+	wasmEnv := types.NewWasmEnv(ctx, contractAddress)
+	wasmInfo := types.NewWasmInfo(creator, deposit)
 
 	// create prefixed data store
 	contractStoreKey := types.GetContractStoreKey(contractAddress)
@@ -126,11 +131,13 @@ func (k Keeper) InstantiateContract(
 
 	// instantiate wasm contract
 	res, gasUsed, err := k.wasmer.Instantiate(
+		codeInfo.VMVersion,
 		codeInfo.CodeHash.Bytes(),
-		apiParams,
+		wasmEnv,
+		wasmInfo,
 		initMsg,
 		contractStore,
-		k.getCosmwamAPI(ctx),
+		cosmwasmAPI,
 		k.querier.WithCtx(ctx),
 		k.getGasMeter(ctx),
 		k.getGasRemaining(ctx),
@@ -151,7 +158,7 @@ func (k Keeper) InstantiateContract(
 
 	// check contract creator address is in whitelist
 	if _, ok := k.loggingWhitelist[creator.String()]; ok || k.wasmConfig.LoggingAll() {
-		events := types.ParseEvents(res.Log, contractAddress)
+		events := types.ParseEvents(res.Attributes, contractAddress)
 		ctx.EventManager().EmitEvents(events)
 		if ok && !ctx.IsCheckTx() && !ctx.IsReCheckTx() {
 			// If a contract is created from whitelist,
@@ -200,13 +207,17 @@ func (k Keeper) ExecuteContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 		}
 	}
 
-	apiParams := types.NewWasmAPIParams(ctx, caller, coins, contractAddress)
+	wasmEnv := types.NewWasmEnv(ctx, contractAddress)
+	wasmInfo := types.NewWasmInfo(caller, coins)
+
 	res, gasUsed, err := k.wasmer.Execute(
+		codeInfo.VMVersion,
 		codeInfo.CodeHash.Bytes(),
-		apiParams,
+		wasmEnv,
+		wasmInfo,
 		exeMsg,
 		storePrefix,
-		k.getCosmwamAPI(ctx),
+		cosmwasmAPI,
 		k.querier.WithCtx(ctx),
 		k.getGasMeter(ctx),
 		k.getGasRemaining(ctx),
@@ -219,7 +230,7 @@ func (k Keeper) ExecuteContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 
 	// emit all events from the contract in the logging whitelist
 	if _, ok := k.loggingWhitelist[contractAddress.String()]; k.wasmConfig.LoggingAll() || ok {
-		events := types.ParseEvents(res.Log, contractAddress)
+		events := types.ParseEvents(res.Attributes, contractAddress)
 		ctx.EventManager().EmitEvents(events)
 	}
 
@@ -258,18 +269,21 @@ func (k Keeper) MigrateContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 	}
 
 	var noDeposit sdk.Coins
-	params := types.NewWasmAPIParams(ctx, caller, noDeposit, contractAddress)
+	wasmEnv := types.NewWasmEnv(ctx, contractAddress)
+	wasmInfo := types.NewWasmInfo(caller, noDeposit)
 
 	// prepare necessary meta data
 	prefixStoreKey := types.GetContractStoreKey(contractAddress)
 	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), prefixStoreKey)
 
 	res, gasUsed, err := k.wasmer.Migrate(
+		newCodeInfo.VMVersion,
 		newCodeInfo.CodeHash.Bytes(),
-		params,
+		wasmEnv,
+		wasmInfo,
 		migrateMsg,
 		&prefixStore,
-		k.getCosmwamAPI(ctx),
+		cosmwasmAPI,
 		k.querier.WithCtx(ctx),
 		k.getGasMeter(ctx),
 		k.getGasRemaining(ctx),
@@ -282,7 +296,7 @@ func (k Keeper) MigrateContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 
 	// emit all events from the contract in the logging whitelist
 	if _, ok := k.loggingWhitelist[contractAddress.String()]; k.wasmConfig.LoggingAll() || ok {
-		events := types.ParseEvents(res.Log, contractAddress)
+		events := types.ParseEvents(res.Attributes, contractAddress)
 		ctx.EventManager().EmitEvents(events)
 	}
 
@@ -333,11 +347,14 @@ func (k Keeper) queryToContract(ctx sdk.Context, contractAddr sdk.AccAddress, qu
 		return nil, err
 	}
 
+	wasmEnv := types.NewWasmEnv(ctx, contractAddr)
 	queryResult, gasUsed, err := k.wasmer.Query(
+		codeInfo.VMVersion,
 		codeInfo.CodeHash.Bytes(),
+		wasmEnv,
 		queryMsg,
 		contractStorePrefix,
-		k.getCosmwamAPI(ctx),
+		cosmwasmAPI,
 		k.querier.WithCtx(ctx),
 		k.getGasMeter(ctx),
 		k.getGasRemaining(ctx),

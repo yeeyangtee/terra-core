@@ -32,12 +32,14 @@ const (
 	DefaultMaxContractMsgSize = uint64(1 * 1024)        // 1KB
 )
 
+// Constants cost metrics
 const (
-	GasMultiplier      = uint64(100)    // Please note that all gas prices returned to the wasmer engine should have this multiplied
-	CompileCostPerByte = uint64(2)      // sdk gas cost per bytes
-	InstanceCost       = uint64(40_000) // sdk gas cost for executing wasmer engine
-	HumanizeCost       = uint64(5)      // sdk gas cost to convert canonical address to human address
-	CanonicalizeCost   = uint64(4)      // sdk gas cost to convert human address to canonical address
+	GasMultiplier       = uint64(100)    // Please note that all gas prices returned to the wasmer engine should have this multiplied
+	CompileCostPerByte  = uint64(2)      // sdk gas cost per bytes
+	InstanceCost        = uint64(40_000) // sdk gas cost for executing wasmer engine
+	HumanizeCost        = uint64(5)      // sdk gas cost to convert canonical address to human address
+	CanonicalizeCost    = uint64(4)      // sdk gas cost to convert human address to canonical address
+	ContractMemoryLimit = 32             // the memory limit of each contract execution (in MiB)
 )
 
 var _ params.ParamSet = &Params{}

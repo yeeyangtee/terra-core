@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/spf13/viper"
@@ -38,7 +39,7 @@ func TestQueryContractState(t *testing.T) {
 	wasmCode, err := ioutil.ReadFile("./testdata/contract.wasm")
 	require.NoError(t, err)
 
-	contractID, err := keeper.StoreCode(ctx, creator, wasmCode)
+	contractID, err := keeper.StoreCode(ctx, creator, wasmCode, wasmvm.VMVersion3)
 	require.NoError(t, err)
 
 	_, _, bob := keyPubAddr()

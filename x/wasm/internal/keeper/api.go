@@ -3,29 +3,27 @@ package keeper
 import (
 	"fmt"
 
-	cosmwasm "github.com/CosmWasm/go-cosmwasm"
+	wasmvm "github.com/CosmWasm/wasmvm"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/terra-project/core/x/wasm/internal/types"
 )
 
-func (k Keeper) getCosmwamAPI(ctx sdk.Context) cosmwasm.GoAPI {
-	return cosmwasm.GoAPI{
-		HumanAddress: func(canon []byte) (humanAddr string, usedGas uint64, err error) {
-			if len(canon) != sdk.AddrLen {
-				return "", 0, fmt.Errorf("Expected %d byte address", sdk.AddrLen)
-			}
-			return sdk.AccAddress(canon).String(), types.HumanizeCost * types.GasMultiplier, nil
-		},
-		CanonicalAddress: func(human string) (canonicalAddr []byte, usedGas uint64, err error) {
-			addr, err := sdk.AccAddressFromBech32(human)
-			if err != nil {
-				return nil, 0, err
-			}
-
-			return addr, types.CanonicalizeCost * types.GasMultiplier, nil
-		},
+func humanAddress(canon []byte) (string, uint64, error) {
+	if len(canon) != sdk.AddrLen {
+		return "", types.HumanizeCost, fmt.Errorf("Expected %d byte address", sdk.AddrLen)
 	}
+	return sdk.AccAddress(canon).String(), types.HumanizeCost, nil
+}
+
+func canonicalAddress(human string) ([]byte, uint64, error) {
+	bz, err := sdk.AccAddressFromBech32(human)
+	return bz, types.CanonicalizeCost, err
+}
+
+var cosmwasmAPI = wasmvm.GoAPI{
+	HumanAddress:     humanAddress,
+	CanonicalAddress: canonicalAddress,
 }
 
 // wasmGasMeter wraps the GasMeter from context and multiplies all reads by out defined multiplier
@@ -34,7 +32,7 @@ type wasmGasMeter struct {
 	gasMultiplier uint64
 }
 
-var _ cosmwasm.GasMeter = wasmGasMeter{}
+var _ wasmvm.GasMeter = wasmGasMeter{}
 
 func (m wasmGasMeter) GasConsumed() sdk.Gas {
 	return m.originalMeter.GasConsumed() * m.gasMultiplier
