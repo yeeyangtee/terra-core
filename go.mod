@@ -27,3 +27,7 @@ replace github.com/cosmos/ledger-cosmos-go => github.com/terra-project/ledger-te
 replace github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4
 
 replace github.com/CosmWasm/go-cosmwasm => github.com/terra-project/go-cosmwasm v0.10.3
+
+replace github.com/tendermint/tm-db => github.com/terra-project/tm-db v0.5.2-0.20210215075645-873beceb3199
+
+replace github.com/tendermint/tendermint => github.com/terra-project/tendermint v0.33.8-0.20210215081135-e120ccbf516b

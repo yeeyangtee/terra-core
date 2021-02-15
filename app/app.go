@@ -131,6 +131,9 @@ type TerraApp struct {
 
 	invCheckPeriod uint
 
+	// application db
+	db dbm.DB
+
 	// keys to access the substores
 	keys  map[string]*sdk.KVStoreKey
 	tkeys map[string]*sdk.TransientStoreKey
@@ -192,6 +195,7 @@ func NewTerraApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 		keys:           keys,
 		tkeys:          tkeys,
 		subspaces:      make(map[string]params.Subspace),
+		db:             db,
 	}
 
 	// init params keeper and subspaces
@@ -362,11 +366,13 @@ func (app *TerraApp) Name() string { return app.BaseApp.Name() }
 
 // BeginBlocker defines application updates at every begin block
 func (app *TerraApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	app.db.SetCriticalZone()
 	return app.mm.BeginBlock(ctx, req)
 }
 
 // EndBlocker defines application updates at every end block
 func (app *TerraApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	app.db.ReleaseCriticalZone()
 	return app.mm.EndBlock(ctx, req)
 }
 
