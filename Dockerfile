@@ -15,8 +15,8 @@ WORKDIR /code
 COPY . /code/
 
 # See https://github.com/terra-project/go-cosmwasm/releases
-ADD https://github.com/terra-project/go-cosmwasm/releases/download/v0.10.4/libgo_cosmwasm_muslc.a /lib/libgo_cosmwasm_muslc.a
-RUN sha256sum /lib/libgo_cosmwasm_muslc.a | grep 2aa7b034b9340fecaa928adf3e8c093893fd6a3986a569ce7cae7528845a0951
+ADD https://github.com/terra-project/go-cosmwasm/releases/download/v0.10.5/libgo_cosmwasm_muslc.a /lib/libgo_cosmwasm_muslc.a
+RUN sha256sum /lib/libgo_cosmwasm_muslc.a | grep 1f6d76ada5652553bb4a0f6454289b769267e575395c220b65e90d670aa35557
 
 # force it to use static lib (from above) not standard libgo_cosmwasm.so file
 RUN LEDGER_ENABLED=false BUILD_TAGS=muslc make update-swagger-docs build
