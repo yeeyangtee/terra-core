@@ -16,6 +16,14 @@ import (
 // NewQuerier creates a new querier
 func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
+		// flag this query as non-execution.
+		// it could be possible that this querier is called by another contract during execution.
+		// in such case, we need to reuse the existing sdk.Context for correct wasmer selection
+		_, executionStateExists := ctx.Value(types.IsContractExecution).(bool)
+		if !executionStateExists {
+			ctx = ctx.WithValue(types.IsContractExecution, false)
+		}
+
 		switch path[0] {
 		case types.QueryGetByteCode:
 			return queryByteCode(ctx, req, keeper)

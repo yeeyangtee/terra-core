@@ -12,6 +12,7 @@ import (
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
+		ctx = ctx.WithValue(types.IsContractExecution, true)
 
 		switch msg := msg.(type) {
 		case MsgStoreCode:

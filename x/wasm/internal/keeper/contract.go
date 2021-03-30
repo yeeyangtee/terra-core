@@ -33,7 +33,7 @@ func (k Keeper) CompileCode(ctx sdk.Context, wasmCode []byte) (codeHash []byte, 
 	// consume gas for compile cost
 	ctx.GasMeter().ConsumeGas(types.CompileCostPerByte*uint64(len(wasmCode)), "Compiling WASM Bytes Cost")
 
-	codeHash, err = k.wasmer.Create(wasmCode)
+	codeHash, err = k.getWasmer(ctx).Create(wasmCode)
 	if err != nil {
 		if core.IsWaitingForSoftfork(ctx, 1) {
 			return nil, sdkerrors.Wrap(types.ErrInternal, err.Error())
@@ -125,7 +125,7 @@ func (k Keeper) InstantiateContract(
 	contractStore := prefix.NewStore(ctx.KVStore(k.storeKey), contractStoreKey)
 
 	// instantiate wasm contract
-	res, gasUsed, err := k.wasmer.Instantiate(
+	res, gasUsed, err := k.getWasmer(ctx).Instantiate(
 		codeInfo.CodeHash.Bytes(),
 		apiParams,
 		initMsg,
@@ -201,6 +201,8 @@ func (k Keeper) ExecuteContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 	}
 
 	apiParams := types.NewWasmAPIParams(ctx, caller, coins, contractAddress)
+
+	// k.wasmer here cannot be wasmForQueries
 	res, gasUsed, err := k.wasmer.Execute(
 		codeInfo.CodeHash.Bytes(),
 		apiParams,
@@ -264,6 +266,7 @@ func (k Keeper) MigrateContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 	prefixStoreKey := types.GetContractStoreKey(contractAddress)
 	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), prefixStoreKey)
 
+	// k.wasmer here cannot be wasmForQueries
 	res, gasUsed, err := k.wasmer.Migrate(
 		newCodeInfo.CodeHash.Bytes(),
 		params,
@@ -333,7 +336,7 @@ func (k Keeper) queryToContract(ctx sdk.Context, contractAddr sdk.AccAddress, qu
 		return nil, err
 	}
 
-	queryResult, gasUsed, err := k.wasmer.Query(
+	queryResult, gasUsed, err := k.getWasmer(ctx).Query(
 		codeInfo.CodeHash.Bytes(),
 		queryMsg,
 		contractStorePrefix,

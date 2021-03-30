@@ -19,6 +19,11 @@ const (
 
 	// RouterKey is the msg router key for the staking module
 	RouterKey = ModuleName
+
+	// IsContractQuery is a flag set for wasm keeper to denote that
+	// this specific context is a contract execution (i.e. not wasm query)
+	// This will result in a different wasmer context to be used
+	IsContractExecution = "isContractExecution"
 )
 
 // Keys for wasm store

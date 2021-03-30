@@ -35,6 +35,7 @@ type Keeper struct {
 	router sdk.Router
 
 	wasmer    wasm.Wasmer
+	wasmerForQueries    wasm.Wasmer
 	querier   types.Querier
 	msgParser types.MsgParser
 
@@ -51,6 +52,11 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey,
 	wasmConfig *config.Config) Keeper {
 	homeDir := viper.GetString(flags.FlagHome)
 	wasmer, err := wasm.NewWasmer(filepath.Join(homeDir, config.DBDir), supportedFeatures, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	wasmerForQuerier, err := wasm.NewWasmer(filepath.Join(homeDir, config.DBDir), supportedFeatures, 0)
 
 	if err != nil {
 		panic(err)
@@ -66,6 +72,7 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey,
 		cdc:              cdc,
 		paramSpace:       paramspace,
 		wasmer:           *wasmer,
+		wasmerForQueries: *wasmerForQuerier,
 		accountKeeper:    accountKeeper,
 		bankKeeper:       bankKeeper,
 		supplyKeeper:     supplyKeeper,
@@ -200,7 +207,7 @@ func (k Keeper) GetByteCode(ctx sdk.Context, codeID uint64) ([]byte, error) {
 		return nil, sdkErr
 	}
 
-	byteCode, err := k.wasmer.GetCode(codeInfo.CodeHash.Bytes())
+	byteCode, err := k.getWasmer(ctx).GetCode(codeInfo.CodeHash.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -218,5 +225,21 @@ func (k *Keeper) RegisterMsgParsers(parsers map[string]types.WasmMsgParserInterf
 func (k *Keeper) RegisterQueriers(queriers map[string]types.WasmQuerierInterface) {
 	for route, querier := range queriers {
 		k.querier.Queriers[route] = querier
+	}
+}
+
+// GetWasmer selects correct wasmer instance depending on the context state
+func (k *Keeper) getWasmer(ctx sdk.Context) *wasm.Wasmer {
+	executionState, ok := ctx.Value(types.IsContractExecution).(bool)
+
+	// fallback to wasmerForQueries if unknown state
+	if !ok {
+		return &k.wasmerForQueries
+	}
+
+	if executionState {
+		return &k.wasmer
+	} else {
+		return &k.wasmerForQueries
 	}
 }
