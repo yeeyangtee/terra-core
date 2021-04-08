@@ -24,8 +24,6 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			ctx = ctx.WithValue(types.IsContractExecution, false)
 		}
 
-		fmt.Printf("[wasm/querier] executionStateExists = %v\n", executionStateExists)
-
 		switch path[0] {
 		case types.QueryGetByteCode:
 			return queryByteCode(ctx, req, keeper)

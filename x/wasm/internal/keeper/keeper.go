@@ -234,15 +234,12 @@ func (k *Keeper) getWasmer(ctx sdk.Context) *wasm.Wasmer {
 
 	// fallback to wasmerForQueries if unknown state
 	if !ok {
-		fmt.Println("[wasmer] using wasmer for queries")
 		return &k.wasmerForQueries
 	}
 
 	if executionState {
-		fmt.Println("[wasmer] using wasmer for execution")
 		return &k.wasmer
 	} else {
-		fmt.Println("[wasmer] using wasmer for queries")
 		return &k.wasmerForQueries
 	}
 }
