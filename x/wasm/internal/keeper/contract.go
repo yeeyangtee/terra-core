@@ -203,7 +203,7 @@ func (k Keeper) ExecuteContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 	apiParams := types.NewWasmAPIParams(ctx, caller, coins, contractAddress)
 
 	// k.wasmer here cannot be wasmForQueries
-	res, gasUsed, err := k.wasmer.Execute(
+	res, gasUsed, err := k.getWasmer(ctx).Execute(
 		codeInfo.CodeHash.Bytes(),
 		apiParams,
 		exeMsg,
@@ -267,7 +267,7 @@ func (k Keeper) MigrateContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), prefixStoreKey)
 
 	// k.wasmer here cannot be wasmForQueries
-	res, gasUsed, err := k.wasmer.Migrate(
+	res, gasUsed, err := k.getWasmer(ctx).Migrate(
 		newCodeInfo.CodeHash.Bytes(),
 		params,
 		migrateMsg,
