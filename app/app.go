@@ -21,6 +21,7 @@ import (
 
 	treasuryclient "github.com/terra-project/core/x/treasury/client"
 
+	core "github.com/terra-project/core/types"
 	"github.com/terra-project/core/x/auth"
 	"github.com/terra-project/core/x/auth/ante"
 	"github.com/terra-project/core/x/auth/vesting"
@@ -344,7 +345,12 @@ func NewTerraApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest 
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	app.SetAnteHandler(ante.NewAnteHandler(app.accountKeeper, app.supplyKeeper, app.treasuryKeeper, auth.DefaultSigVerificationGasConsumer))
+	app.SetAnteHandler(ante.NewAnteHandler(
+		app.accountKeeper,
+		app.supplyKeeper,
+		app.oracleKeeper,
+		app.treasuryKeeper,
+		auth.DefaultSigVerificationGasConsumer))
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
@@ -367,7 +373,21 @@ func (app *TerraApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) a
 
 // EndBlocker defines application updates at every end block
 func (app *TerraApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+	res := app.mm.EndBlock(ctx, req)
+	if core.IsSoftforkHeight(ctx, 3) {
+		return abci.ResponseEndBlock{
+			ConsensusParamUpdates: &abci.ConsensusParams{
+				Block: &abci.BlockParams{
+					MaxBytes: 1000000,
+					MaxGas:   30000000,
+				},
+			},
+			ValidatorUpdates: res.ValidatorUpdates,
+			Events:           res.Events,
+		}
+	}
+
+	return res
 }
 
 // InitChainer defines application update at chain initialization

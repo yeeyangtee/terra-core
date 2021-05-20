@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/CosmWasm/go-cosmwasm v0.10.0
-	github.com/cosmos/cosmos-sdk v0.39.2
+	github.com/cosmos/cosmos-sdk v0.39.3
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.4
 	github.com/otiai10/copy v1.0.2
@@ -18,10 +18,12 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tendermint/go-amino v0.15.1
 	github.com/tendermint/tendermint v0.33.9
-	github.com/tendermint/tm-db v0.5.1
+	github.com/tendermint/tm-db v0.5.2
 	google.golang.org/grpc v1.30.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 )
+
+replace github.com/tendermint/tendermint => github.com/terra-project/tendermint v0.33.10-0.20210316144017-090845916b4a
 
 replace github.com/cosmos/ledger-cosmos-go => github.com/terra-project/ledger-terra-go v0.11.1-terra
 
@@ -29,4 +31,4 @@ replace github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.
 
 replace github.com/CosmWasm/go-cosmwasm => github.com/terra-project/go-cosmwasm v0.10.5
 
-replace github.com/cosmos/cosmos-sdk => github.com/terra-project/cosmos-sdk v0.39.2-public.4
+replace github.com/cosmos/cosmos-sdk => github.com/terra-project/cosmos-sdk v0.39.2-public.6
