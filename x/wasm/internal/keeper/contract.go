@@ -150,7 +150,7 @@ func (k Keeper) InstantiateContract(
 	k.SetContractInfo(ctx, contractAddress, contractInfo)
 
 	// check contract creator address is in whitelist
-	if _, ok := k.loggingWhitelist[creator.String()]; ok || k.wasmConfig.LoggingAll() {
+	if _, ok := k.loggingWhitelist[creator.String()]; (ok || k.wasmConfig.LoggingAll()) && len(res.Log) < 128 {
 		events := types.ParseEvents(res.Log, contractAddress)
 		ctx.EventManager().EmitEvents(events)
 		if ok && !ctx.IsCheckTx() && !ctx.IsReCheckTx() {
@@ -218,7 +218,7 @@ func (k Keeper) ExecuteContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 	}
 
 	// emit all events from the contract in the logging whitelist
-	if _, ok := k.loggingWhitelist[contractAddress.String()]; k.wasmConfig.LoggingAll() || ok {
+	if _, ok := k.loggingWhitelist[contractAddress.String()]; (ok || k.wasmConfig.LoggingAll()) && len(res.Log) < 128 {
 		events := types.ParseEvents(res.Log, contractAddress)
 		ctx.EventManager().EmitEvents(events)
 	}
@@ -281,7 +281,7 @@ func (k Keeper) MigrateContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 	}
 
 	// emit all events from the contract in the logging whitelist
-	if _, ok := k.loggingWhitelist[contractAddress.String()]; k.wasmConfig.LoggingAll() || ok {
+	if _, ok := k.loggingWhitelist[contractAddress.String()]; (ok || k.wasmConfig.LoggingAll()) && len(res.Log) < 128 {
 		events := types.ParseEvents(res.Log, contractAddress)
 		ctx.EventManager().EmitEvents(events)
 	}
